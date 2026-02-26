@@ -36,12 +36,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ github.ref_name }}
-          files: |
-            build/libs/*.jar
-            !build/libs/*-dev.jar
-            !build/libs/*-sources.jar
-            !build/libs/*-shadow.jar
-            !build/libs/*-api.jar
+          files: build/libs/*.jar
           generate_release_notes: true
           draft: false
           prerelease: false

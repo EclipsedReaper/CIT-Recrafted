@@ -36,7 +36,7 @@ public class CITModelBakeListener {
                             event.getMap().registerSprite(texture);
                         }
                     } catch (Exception e) {
-                        CITRecrafted.LOGGER.error("Failed to stitch custom item texture");
+                        CITRecrafted.LOGGER.warn("CIT model missing or malformed, skipping textures for: {}", rule.getModel());
                     }
                 }
                 if (rule.getTexture() != null) {
@@ -79,7 +79,7 @@ public class CITModelBakeListener {
                     }
                     rule.setBakedModel(bakedModel);
                 } catch (Exception e) {
-                    CITRecrafted.LOGGER.error("Failed to bake custom item model");
+                    CITRecrafted.LOGGER.warn("Failed to bake CIT model (file likely missing): {}", rule.getModel());
                 }
             }
         }

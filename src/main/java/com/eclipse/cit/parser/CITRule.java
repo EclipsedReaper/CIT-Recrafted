@@ -1,6 +1,7 @@
 package com.eclipse.cit.parser;
 
 import com.eclipse.cit.CITRecrafted;
+import com.eclipse.cit.util.CITPathResolver;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.Item;
@@ -46,14 +47,14 @@ public class CITRule {
         String model = properties.getProperty("model");
 
         if (texture != null) {
-            this.texture = resolveResource(path, texture, ".png");
+            this.texture = CITPathResolver.resolve(path, texture, ".png");
         } else if (model == null) {
             String fileName = path.substring(path.lastIndexOf('/') + 1);
-            this.texture = resolveResource(path, fileName, ".properties");
+            this.texture = CITPathResolver.resolve(path, fileName, ".properties");
         }
 
         if (model != null) {
-            this.model = resolveResource(path, model, ".json", ".jpm");
+            this.model = CITPathResolver.resolve(path, model, ".json", ".jpm");
         }
 
         String stringWeight = properties.getProperty("weight");
@@ -122,12 +123,16 @@ public class CITRule {
             }
         }
 
+        NBTTagList enchants = stack.getItem() == net.minecraft.init.Items.ENCHANTED_BOOK
+                ? net.minecraft.item.ItemEnchantedBook.getEnchantments(stack)
+                : stack.getEnchantmentTagList();
+
         if (!this.enchantmentConditions.isEmpty()) {
-            if (!evaluateEnchantmentConditions(stack.getEnchantmentTagList())) return false;
+            if (!evaluateEnchantmentConditions(enchants)) return false;
         }
 
         if (!this.enchantmentLevelConditions.isEmpty()) {
-            if (!evaluateEnchantmentLevelConditions(stack.getEnchantmentTagList())) return false;
+            if (!evaluateEnchantmentLevelConditions(enchants)) return false;
         }
 
         if (!this.stackSizeConditions.isEmpty()) {
@@ -154,7 +159,7 @@ public class CITRule {
                 if (itemStr.matches("\\d+")) {
                     parsedItem = Item.getItemById(Integer.parseInt(itemStr));
                 } else {
-                    if (!itemStr.startsWith("minecraft:")) {
+                    if (!itemStr.contains(":")) {
                         itemStr = "minecraft:" + itemStr;
                     }
                     parsedItem = Item.REGISTRY.getObject(new ResourceLocation(itemStr));
@@ -192,7 +197,7 @@ public class CITRule {
                 if (id.isEmpty()) {
                     short numID = enchantment.getShort("id");
                     Enchantment e = Enchantment.getEnchantmentByID(numID);
-                    if (e != null) id = Enchantment.REGISTRY.getNameForObject(e).getPath();
+                    if (e != null) id = Enchantment.REGISTRY.getNameForObject(e).toString();
                 }
                 if (pattern.matcher(id).matches() || (id.contains(":") && pattern.matcher(id.split(":")[1]).matches())) {
                     match = true;
@@ -272,26 +277,6 @@ public class CITRule {
         }
     }
 
-    private ResourceLocation resolveResource(String basePath, String value, String... extensionsToStrip) {
-        if (value == null) return null;
-        String cleaned = value.trim();
-        for (String ext : extensionsToStrip) {
-            if (cleaned.endsWith(ext)) {
-                cleaned = cleaned.substring(0, cleaned.length() - ext.length());
-            }
-        }
-        String directory = basePath.substring(0, basePath.lastIndexOf('/') + 1);
-        if (cleaned.startsWith("./")) {
-            cleaned = directory + cleaned.substring(2);
-        }
-        else if (!cleaned.contains("/") && !cleaned.contains(":")) {
-            cleaned = directory + cleaned;
-        }
-        if (cleaned.contains("assets/minecraft/")) {
-            cleaned = cleaned.substring(cleaned.indexOf("assets/minecraft/") + 17);
-        }
-        return new ResourceLocation(cleaned);
-    }
     private boolean checkNBTCondition(NBTTagCompound root, List<String> path, Pattern pattern) {
         NBTBase current = root;
         for (int i = 0; i < path.size() - 1; i++) {
