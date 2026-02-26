@@ -27,3 +27,6 @@ Built from the ground up to support legacy OptiFine/MCPatcher resource packs, CI
 See the [Optifine documentation](https://optifine.readthedocs.io/cit.html) for more information.
 
 </details>
+
+## What is CIT?
+CIT is a feature added by Optifine (and previously MCPatcher) allowing resource pack creators to give items custom textures based on properties like item name or durability. As Optifine is growing outdated, I wanted an alternative to use with better optimization mods, so I made one.
